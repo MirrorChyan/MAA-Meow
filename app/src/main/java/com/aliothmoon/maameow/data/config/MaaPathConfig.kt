@@ -1,0 +1,42 @@
+package com.aliothmoon.maameow.data.config
+
+import android.content.Context
+import com.aliothmoon.maameow.constant.MaaFiles.DEBUG
+import com.aliothmoon.maameow.constant.MaaFiles.MAA
+import com.aliothmoon.maameow.constant.MaaFiles.RESOURCE
+import com.aliothmoon.maameow.constant.MaaFiles.VERSION_FILE
+import java.io.File
+
+class MaaPathConfig(private val context: Context) {
+
+
+    /** Maa 根目录 */
+    val rootDir: String by lazy {
+        File(context.getExternalFilesDir(null), MAA).absolutePath
+    }
+
+    /** 资源目录 */
+    val resourceDir: String by lazy {
+        File(rootDir, RESOURCE).absolutePath
+    }
+
+    /** 调试日志目录 */
+    val debugDir: String by lazy {
+        File(rootDir, DEBUG).absolutePath
+    }
+
+    /** version.json 路径 */
+    private val versionFile: File
+        get() = File(resourceDir, VERSION_FILE)
+
+    /** 资源是否已就绪 */
+    val isResourceReady: Boolean
+        get() = versionFile.exists()
+
+    fun ensureDirectories(): Boolean {
+        return runCatching {
+            File(rootDir).mkdirs()
+            File(rootDir, ".nomedia").createNewFile()
+        }.getOrDefault(false)
+    }
+}

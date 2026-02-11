@@ -1,0 +1,141 @@
+package com.aliothmoon.maameow.maa.callback
+
+import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.JSONObject
+import com.aliothmoon.maameow.data.model.LogLevel
+import com.aliothmoon.maameow.domain.service.RuntimeLogCenter
+import com.aliothmoon.maameow.domain.state.MaaExecutionState
+import com.aliothmoon.maameow.maa.AsstMsg
+import timber.log.Timber
+
+class MaaCallbackDispatcher(
+    private val runtimeLogCenter: RuntimeLogCenter,
+    private val stateHolder: MaaExecutionStateHolder,
+    private val connectionInfoHandler: ConnectionInfoHandler,
+    private val taskChainHandler: TaskChainHandler,
+    private val subTaskHandler: SubTaskHandler,
+) {
+
+    fun dispatch(msg: Int, json: String?) {
+        val message = AsstMsg.fromValue(msg)
+        if (message == null) {
+            Timber.w("收到未知消息类型: msg=$msg, json=$json")
+            return
+        }
+
+        Timber.d("dispatch: msg=$message, json=$json")
+
+
+        // 解析 JSON details
+        val details: JSONObject? = try {
+            if (json.isNullOrBlank()) null else JSON.parseObject(json)
+        } catch (e: Exception) {
+            Timber.e(e, "解析回调 JSON 失败: msg=$message, json=$json")
+            null
+        }
+
+        // 根据消息类型分发
+        when (message) {
+            AsstMsg.InternalError -> handleInternalError(details)
+            AsstMsg.InitFailed -> handleInitFailed(details)
+            AsstMsg.ConnectionInfo -> handleConnectionInfo(details)
+            AsstMsg.TaskChainStart -> handleTaskChainStart(details)
+            AsstMsg.AllTasksCompleted -> handleAllTasksCompleted(details)
+            AsstMsg.TaskChainError -> handleTaskChainError(details)
+            AsstMsg.TaskChainCompleted -> handleTaskChainCompleted(details)
+            AsstMsg.TaskChainStopped -> handleTaskChainStopped(details)
+            AsstMsg.TaskChainExtraInfo -> handleTaskChainExtraInfo(details)
+            AsstMsg.AsyncCallInfo -> handleAsyncCallInfo(details)
+            AsstMsg.Destroyed -> handleDestroyed(details)
+            AsstMsg.SubTaskError -> handleSubTaskError(details)
+            AsstMsg.SubTaskStart -> handleSubTaskStart(details)
+            AsstMsg.SubTaskCompleted -> handleSubTaskCompleted(details)
+            AsstMsg.SubTaskExtraInfo -> handleSubTaskExtraInfo(details)
+            AsstMsg.SubTaskStopped -> handleSubTaskStopped(details)
+            AsstMsg.ReportRequest -> handleReportRequest(details)
+        }
+    }
+
+
+    private fun handleInternalError(details: JSONObject?) {
+        Timber.w("MaaCore 内部错误: ${details ?: ""}")
+    }
+
+    private fun handleInitFailed(details: JSONObject?) {
+        val what = details?.getString("what") ?: ""
+        val why = details?.getString("why") ?: ""
+        Timber.e("MaaCore 初始化失败: what=$what, why=$why")
+        stateHolder.reportRunState(MaaExecutionState.ERROR)
+        runtimeLogCenter.append(
+            "初始化失败: $what${if (why.isNotEmpty()) " ($why)" else ""}",
+            LogLevel.ERROR
+        )
+    }
+
+    private fun handleConnectionInfo(details: JSONObject?) {
+        details?.let { connectionInfoHandler.handle(it) }
+    }
+
+    private fun handleTaskChainStart(details: JSONObject?) {
+        details?.let { taskChainHandler.handle(AsstMsg.TaskChainStart, it) }
+    }
+
+    private fun handleAllTasksCompleted(details: JSONObject?) {
+        stateHolder.reportRunState(MaaExecutionState.IDLE)
+        details?.let { taskChainHandler.handle(AsstMsg.AllTasksCompleted, it) }
+        runtimeLogCenter.endSession("COMPLETED")
+    }
+
+    private fun handleTaskChainError(details: JSONObject?) {
+        stateHolder.reportRunState(MaaExecutionState.ERROR)
+        details?.let { taskChainHandler.handle(AsstMsg.TaskChainError, it) }
+    }
+
+    private fun handleTaskChainCompleted(details: JSONObject?) {
+        details?.let { taskChainHandler.handle(AsstMsg.TaskChainCompleted, it) }
+    }
+
+    private fun handleTaskChainStopped(details: JSONObject?) {
+        stateHolder.reportRunState(MaaExecutionState.IDLE)
+        details?.let { taskChainHandler.handle(AsstMsg.TaskChainStopped, it) }
+    }
+
+    private fun handleTaskChainExtraInfo(details: JSONObject?) {
+        details?.let { taskChainHandler.handle(AsstMsg.TaskChainExtraInfo, it) }
+    }
+
+    private fun handleAsyncCallInfo(details: JSONObject?) {
+        Timber.d("收到 AsyncCallInfo，由 MaaCompositionService 处理")
+    }
+
+    private fun handleDestroyed(details: JSONObject?) {
+        stateHolder.reportRunState(MaaExecutionState.IDLE)
+        Timber.i("MaaCore 实例已销毁")
+    }
+
+    private fun handleSubTaskError(details: JSONObject?) {
+        details?.let { subTaskHandler.handle(AsstMsg.SubTaskError, it) }
+    }
+
+    private fun handleSubTaskStart(details: JSONObject?) {
+        details?.let { subTaskHandler.handle(AsstMsg.SubTaskStart, it) }
+    }
+
+    private fun handleSubTaskCompleted(details: JSONObject?) {
+        details?.let { subTaskHandler.handle(AsstMsg.SubTaskCompleted, it) }
+    }
+
+    private fun handleSubTaskExtraInfo(details: JSONObject?) {
+        details?.let { subTaskHandler.handle(AsstMsg.SubTaskExtraInfo, it) }
+    }
+
+    private fun handleSubTaskStopped(details: JSONObject?) {
+        Timber.d("SubTask 已停止")
+    }
+
+    private fun handleReportRequest(details: JSONObject?) {
+        // TODO
+        Timber.d("收到 ReportRequest（暂未实现上报功能）: $details")
+    }
+
+}
