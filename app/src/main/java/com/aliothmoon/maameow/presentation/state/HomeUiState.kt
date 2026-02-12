@@ -13,7 +13,7 @@ data class HomeUiState(
     val serviceStatusColor: StatusColorType = StatusColorType.NEUTRAL,
     val serviceStatusLoading: Boolean = false,
     val resourceInitState: ResourceInitState = ResourceInitState.NotChecked,
-    val runMode: RunMode = RunMode.FOREGROUND,
+    val runMode: RunMode = RunMode.BACKGROUND,
     val overlayControlMode: OverlayControlMode = OverlayControlMode.FLOAT_BALL,
     val isGranting: Boolean = false,
     val showRunModeUnsupportedDialog: Boolean = false,

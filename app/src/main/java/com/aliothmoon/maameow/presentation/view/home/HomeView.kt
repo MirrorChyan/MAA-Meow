@@ -65,7 +65,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.window.DialogProperties
 import com.aliothmoon.maameow.manager.PermissionManager
+import com.aliothmoon.maameow.manager.ShizukuInstallHelper
 import com.aliothmoon.maameow.presentation.state.StatusColorType
 import org.koin.compose.koinInject
 
@@ -104,6 +106,28 @@ fun HomeView(
         onRetry = { viewModel.onTryResourceInit() },
         onRequestPermission = { viewModel.onPermissionForResourceInit(context) }
     )
+
+    // Shizuku 未安装时引导安装
+    if (!ShizukuInstallHelper.isShizukuInstalled(context)) {
+        AlertDialog(
+            onDismissRequest = {},
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false,
+            ),
+            title = { Text("未检测到 Shizuku") },
+            text = {
+                Text("本应用依赖 Shizuku 服务运行，检测到设备未安装 Shizuku，请先安装。")
+            },
+            confirmButton = {
+                Button(
+                    onClick = { ShizukuInstallHelper.installShizuku(context) }
+                ) {
+                    Text("安装 Shizuku")
+                }
+            }
+        )
+    }
 
     if (uiState.showRunModeUnsupportedDialog) {
         AlertDialog(

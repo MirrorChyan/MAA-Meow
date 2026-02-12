@@ -54,10 +54,10 @@ class AppSettingsManager(private val context: Context) {
     val runMode: StateFlow<RunMode> = settings
         .map {
             runCatching { RunMode.valueOf(it.runMode) }
-                .getOrDefault(RunMode.FOREGROUND)
+                .getOrDefault(RunMode.BACKGROUND)
         }
         .distinctUntilChanged()
-        .stateIn(scope, SharingStarted.Eagerly, RunMode.FOREGROUND)
+        .stateIn(scope, SharingStarted.Eagerly, RunMode.BACKGROUND)
 
     suspend fun setRunMode(mode: RunMode) {
         with(AppSettingsSchema) {
