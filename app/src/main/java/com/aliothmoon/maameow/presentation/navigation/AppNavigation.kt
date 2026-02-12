@@ -83,7 +83,7 @@ fun AppNavigation(
             NavHost(
                 navController = navController,
                 startDestination = Routes.HOME,
-                modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())
+                modifier = Modifier.padding(paddingValues)
             ) {
                 composable(
                     route = Routes.HOME,

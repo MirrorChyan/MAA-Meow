@@ -1,6 +1,5 @@
 package com.aliothmoon.maameow.presentation.navigation
 
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
@@ -9,9 +8,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import com.aliothmoon.maameow.constant.Routes
 
 sealed class BottomNavTab(
@@ -41,9 +38,7 @@ fun AppBottomNavigation(
     currentRoute: String,
     onTabSelected: (BottomNavTab) -> Unit
 ) {
-    NavigationBar(
-        modifier = Modifier.height(56.dp)
-    ) {
+    NavigationBar {
         BottomNavTab.all.forEach { tab ->
             NavigationBarItem(
                 selected = currentRoute == tab.route,
