@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.aliothmoon.maameow.data.model.TaskItem
 import com.aliothmoon.maameow.data.model.TaskType
@@ -118,6 +119,8 @@ private fun TaskItemRow(
                 text = taskType?.displayName ?: task.type,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
 

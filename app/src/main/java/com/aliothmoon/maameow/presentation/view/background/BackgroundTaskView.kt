@@ -179,7 +179,7 @@ fun BackgroundTaskView(
                                         viewModel.onTaskMove(fromIndex, toIndex)
                                     },
                                     modifier = Modifier
-                                        .weight(0.35f)
+                                        .weight(0.4f)
                                         .fillMaxHeight()
                                 )
 
@@ -189,7 +189,7 @@ fun BackgroundTaskView(
                                     state = state,
                                     viewModel = viewModel,
                                     modifier = Modifier
-                                        .weight(0.65f)
+                                        .weight(0.6f)
                                         .fillMaxHeight()
                                 )
                             }
